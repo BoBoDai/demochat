@@ -5,22 +5,63 @@
  * @format
  */
 
-import React from 'react';
+import React, {useState} from 'react';
 import {Button, SafeAreaView} from 'react-native';
 
 import styled from 'styled-components/native';
 
+type MessageType = {
+  text: string;
+  timestamp: number;
+};
+
 function App(): React.JSX.Element {
+  const [messageList, setMessageList] = useState<MessageType[]>([]);
+  const [message, setMessage] = useState('');
+
+  const sendMessage = () => {
+    const oneMessage = {
+      text: message,
+      timestamp: Date.now(),
+    };
+    setMessageList([...messageList, oneMessage]);
+    setMessage('');
+  };
+
+  const getYearMonthDay = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+    const second = date.getSeconds();
+    return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+  };
+
   return (
     <SafeAreaView>
       <Page>
         <Header>
           <HeaderText>Friendly Chat</HeaderText>
         </Header>
-        <Messages />
+        <Messages>
+          {messageList.map((messageItem, index) => (
+            <Message key={index}>
+              <MessageText>{messageItem.text}</MessageText>
+              <MessageTime>
+                {getYearMonthDay(messageItem.timestamp)}
+              </MessageTime>
+            </Message>
+          ))}
+        </Messages>
         <MessageInputView>
-          <InputView placeholder="Message..." />
-          <Button title="Send" />
+          <InputView
+            placeholder="Message..."
+            value={message}
+            onChangeText={setMessage}
+          />
+          <Button title="Send" onPress={sendMessage} />
         </MessageInputView>
       </Page>
     </SafeAreaView>
@@ -33,8 +74,28 @@ const Page = styled.View`
 `;
 const Messages = styled.View`
   flex: 1;
-  background-color: lightgrey;
-  padding: 10px;
+  display: flex;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  flex-direction: column;
+`;
+
+const Message = styled.View`
+  display: block;
+  margin-top: 10px;
+
+  padding-top: 10px;
+  padding-left: 20px;
+`;
+
+const MessageText = styled.Text`
+  font-size: 20px;
+`;
+
+const MessageTime = styled.Text`
+  margin-top: 10px;
+  font-size: 12px;
+  color: rgb(150, 150, 150);
 `;
 
 const Header = styled.View`
