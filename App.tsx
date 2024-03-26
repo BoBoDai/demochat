@@ -5,10 +5,10 @@
  * @format
  */
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Button, SafeAreaView} from 'react-native';
-
 import styled from 'styled-components/native';
+import apiClient from './src/client/apiClient.js';
 
 type MessageType = {
   text: string;
@@ -17,15 +17,35 @@ type MessageType = {
 
 function App(): React.JSX.Element {
   const [messageList, setMessageList] = useState<MessageType[]>([]);
-  const [message, setMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState('');
 
+  useEffect(() => {
+    console.log('start');
+    const socket = new WebSocket('ws://localhost:8080/chat');
+    socket.onopen = () => console.log('WebSocket Connected');
+    socket.onmessage = event => {
+      console.log('on message');
+      const message = JSON.parse(event.data);
+      console.log('get message', message);
+      setMessageList(prev => [...prev, message]);
+    };
+    return () => socket.close();
+  }, []);
   const sendMessage = () => {
     const oneMessage = {
-      text: message,
+      text: inputMessage,
       timestamp: Date.now(),
     };
+    apiClient
+      .post('/send-message', oneMessage)
+      .then(() => {
+        console.log('send success with', oneMessage.text);
+      })
+      .catch(e => {
+        console.log(e.message);
+      });
     setMessageList([...messageList, oneMessage]);
-    setMessage('');
+    setInputMessage('');
   };
 
   const getYearMonthDay = (timestamp: number) => {
@@ -58,8 +78,8 @@ function App(): React.JSX.Element {
         <MessageInputView>
           <InputView
             placeholder="Message..."
-            value={message}
-            onChangeText={setMessage}
+            value={inputMessage}
+            onChangeText={setInputMessage}
           />
           <Button title="Send" onPress={sendMessage} />
         </MessageInputView>
