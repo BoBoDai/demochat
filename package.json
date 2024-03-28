@@ -10,6 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@stomp/stompjs": "^7.0.0",
     "axios": "^1.6.8",
     "react": "18.2.0",
     "react-native": "0.73.6",
