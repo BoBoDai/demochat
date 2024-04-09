@@ -1,23 +1,21 @@
 import {Button} from 'react-native';
 import React, {useState} from 'react';
 import styled from 'styled-components/native';
-import SendMessageApi from '../client/apiClient.ts';
 import {MessageType} from '../model/Message.ts';
 
 interface InputMessageProps {
-  addMessageInList: (message: MessageType) => void;
+  sendMessage: (message: MessageType) => void;
 }
 
-const InputMessage: React.FC<InputMessageProps> = ({addMessageInList}) => {
+const InputMessage: React.FC<InputMessageProps> = ({sendMessage}) => {
   const [inputMessage, setInputMessage] = useState('');
 
-  const sendMessage = () => {
+  const send = () => {
     const message: MessageType = {
       text: inputMessage,
       timestamp: Date.now(),
     };
-    SendMessageApi(message);
-    addMessageInList(message);
+    sendMessage(message);
     setInputMessage('');
   };
 
@@ -28,7 +26,7 @@ const InputMessage: React.FC<InputMessageProps> = ({addMessageInList}) => {
         value={inputMessage}
         onChangeText={setInputMessage}
       />
-      <Button title="Send" onPress={sendMessage} />
+      <Button title="Send" onPress={send} />
     </MessageInputView>
   );
 };

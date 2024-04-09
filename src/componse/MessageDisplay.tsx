@@ -33,14 +33,12 @@ export default MessageDisplay;
 
 const Messages = styled.View`
   flex: 1;
-  display: flex;
   overflow-y: auto;
   margin-bottom: 10px;
   flex-direction: column;
 `;
 
 const Message = styled.View`
-  display: block;
   margin-top: 10px;
 
   padding-top: 10px;

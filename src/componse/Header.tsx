@@ -14,7 +14,6 @@ export default Header;
 const HeaderView = styled.View`
   background: rgb(59, 134, 203);
   height: 50px;
-  display: flex;
   align-items: center;
   justify-content: center;
 `;

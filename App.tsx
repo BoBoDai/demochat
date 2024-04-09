@@ -8,10 +8,11 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native';
 import styled from 'styled-components/native';
-import {Client} from '@stomp/stompjs';
 import Header from './src/componse/Header.tsx';
 import InputMessage from './src/componse/InputMessage.tsx';
 import MessageDisplay from './src/componse/MessageDisplay.tsx';
+import 'text-encoding';
+import {Client} from '@stomp/stompjs';
 
 type MessageType = {
   text: string;
@@ -20,42 +21,35 @@ type MessageType = {
 
 function App(): React.JSX.Element {
   const [messageList, setMessageList] = useState<MessageType[]>([]);
-  const [stompClient, setStompClient] = useState<Client>();
+  const [websocket, setWebsocket] = useState<Client>();
 
   useEffect(() => {
-    console.log('start');
-
-    const socket2 = new WebSocket('ws://localhost:8080/chat');
-    socket2.onopen = () => {
-      console.log('WebSocket Connected');
-    };
-
-    const socket = new Client({brokerURL: 'ws://localhost:8080/chat'});
-    socket.onConnect = frame => {
+    const websocket = new Client({brokerURL: 'ws://localhost:8080/chat'});
+    websocket.onConnect = frame => {
       console.log('Connected: ' + frame);
-      socket.subscribe('/topic/greetings', event => {
-        JSON.parse(event.body);
+      websocket.publish({destination: '/app/data/sync'});
+      websocket.subscribe('/topic/messages', message => {
+        const receivedMessage = JSON.parse(message.body) as Array<MessageType>;
+        receivedMessage.forEach(it => {
+          setMessageList(pre => [...pre, it]);
+        });
       });
     };
-    setStompClient(socket);
-
+    setWebsocket(websocket);
+    websocket.activate();
     return () => {
-      socket.deactivate();
+      websocket.deactivate();
     };
   }, []);
 
-  useEffect(() => {
-    if (stompClient) {
-      console.log('activate', stompClient.active);
-      stompClient.activate();
-    }
-  }, [stompClient]);
-
-  const addMessageInList = useCallback(
+  const sendMessage = useCallback(
     (message: MessageType) => {
-      setMessageList([...messageList, message]);
+      websocket?.publish({
+        destination: '/app/chat',
+        body: JSON.stringify(message),
+      });
     },
-    [messageList],
+    [websocket],
   );
 
   return (
@@ -63,7 +57,7 @@ function App(): React.JSX.Element {
       <Page>
         <Header />
         <MessageDisplay messageList={messageList} />
-        <InputMessage addMessageInList={addMessageInList} />
+        <InputMessage sendMessage={sendMessage} />
       </Page>
     </SafeAreaView>
   );
